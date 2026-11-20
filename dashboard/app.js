@@ -358,4 +358,114 @@
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && dialog.open) dialog.close();
   });
+
+  /* ========================================================================
+     Round-5 extension: extra dashboard features.
+     Every line below is new; nothing above this comment was altered.
+     Features: per-category stats strip, copy-protocol (Shift+click a row),
+     last-updated footer, print-friendly layout and keyboard shortcuts.
+     ======================================================================== */
+
+  /** Render a per-category stats strip under the board header. */
+  function categoryStats() {
+    var stats = {};
+    DATA.rows.forEach(function (r) {
+      var c = r.category || 'Other';
+      var s = stats[c];
+      if (!s) s = stats[c] = { count: 0, tvl: 0 };
+      s.count += 1;
+      s.tvl += r.tvl_usd || 0;
+    });
+    var order = Object.keys(stats).sort(function (a, b) {
+      return stats[b].tvl - stats[a].tvl;
+    });
+    var wrap = el('div', { class: 'category-stats' },
+      el('span', { class: 'sub', text: 'Categories' }),
+      order.map(function (c) {
+        var s = stats[c];
+        return el('span', { class: 'stat-chip' },
+          el('b', { text: c + ' (' + s.count + ')' }),
+          el('span', { text: fmtUsd(s.tvl) }));
+      }));
+    app.insertBefore(wrap, app.firstChild);
+  }
+
+  /** Copy a protocol slug to the clipboard on Shift+click of a board row. */
+  var boardEl = app;
+  boardEl.addEventListener('click', function (e) {
+    var tr = e.target;
+    while (tr && tr.tagName !== 'TR') tr = tr.parentElement;
+    if (!tr || !tr.dataset || !tr.dataset.slug) return;
+    if (!e.shiftKey) return;
+    var slug = tr.dataset.slug;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(slug).then(function () {
+        var old = tr.style.background;
+        tr.style.background = 'color-mix(in srgb, var(--accent) 15%, var(--surface))';
+        setTimeout(function () { tr.style.background = old || ''; }, 900);
+      });
+    }
+  });
+
+  /** Last-updated footer. */
+  var footer = el('footer', { class: 'footer' },
+    el('span', { text: 'Token Radar · snapshot ' + DATA.as_of }),
+    el('span', { text: 'model ' + DATA.model_version }),
+    el('span', { text: DATA.board_size + ' ranked rows · ' + DATA.watchlist_size + ' watchlist covered' }),
+    el('span', { text: 'no network · no API keys · deterministic' }));
+  app.appendChild(footer);
+
+  /* keyboard: 'f' focuses search, 'c' clears filters, 'l' toggles live/pre-token */
+  window.addEventListener('keydown', function (e) {
+    if (e.target && e.target.tagName === 'INPUT') return;
+    var key = e.key.toLowerCase();
+    if (key === 'f') { var q = document.getElementById('q'); if (q) q.focus(); e.preventDefault(); }
+    if (key === 'c') { state.q = ''; state.category = 'all'; writeHash(); render(); e.preventDefault(); }
+    if (key === 'l') { state.tab = state.tab === 'pre-token' ? 'live' : 'pre-token'; render(); e.preventDefault(); }
+  });
+
+  categoryStats();
+
+  /* printable styles: drop colors and bars on print */
+  var style = document.createElement('style');
+  style.textContent = '@media print { .bar { display: none !important; } .neg, .pos { color: inherit !important; } .detail { position: static !important; width: auto !important; transform: none !important; } body { background: #fff !important; } }';
+  document.head.appendChild(style);
+
+  /* ========================================================================
+     Round-5 extension part 2: glossary panel + how-to-read notes.
+     ======================================================================== */
+  function glossaryPanel() {
+    var entries = [
+      { t: 'Implied value', d: 'tvl_usd x 0.25 x growth multiplier x maturity multiplier, floored at $1. Rank 1 = highest implied value.' },
+      { t: 'TVL', d: "Total value locked in the protocol, whole US dollars, truncated (from the snapshot)." },
+      { t: '7d change', d: "The protocol's TVL change over seven days, in percent (from the snapshot)." },
+      { t: 'Age', d: 'Days since DefiLlama first listed the protocol; unlisted ages count as 365 days.' },
+      { t: 'Watchlist', d: "DefiLlama's $50M+ TVL, no-token protocols — the floor this board covers in full." },
+      { t: 'Pre-token', d: 'No market cap, no CoinGecko id, no symbol on record: a token that may not exist yet.' },
+      { t: 'Farm steps', d: 'Six steps per protocol: wallet, position, weekly activity, hold window, claim, log.' },
+      { t: 'Live tokens', d: 'Already-trading protocols shown beside the board with their market caps; never ranked.' },
+    ];
+    var items = entries.map(function (e) {
+      return el('div', null,
+        el('b', { text: e.t + ': ' }), el('span', { text: e.d }));
+    });
+    return el('section', { class: 'panel glossary' },
+      el('h2', { text: 'How to read this radar' }),
+      el('p', { class: 'sub', text: 'Every number comes from the sealed DefiLlama snapshot; nothing is fetched from the network and no key is needed.' }),
+      el('div', { class: 'glossary-list' }, items));
+  }
+
+  app.appendChild(glossaryPanel());
+
+  /* small styles for the extensions */
+  var extStyle = document.createElement('style');
+  extStyle.textContent =
+    '.category-stats{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);overflow-x:auto} ' +
+    '.stat-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:var(--surface);font-size:12px;margin-right:6px;margin-bottom:6px} ' +
+    '.stat-chip b{color:var(--ink)} .stat-chip span{color:var(--muted)} ' +
+    '.glossary{border-top:1px solid var(--border);margin-top:24px} ' +
+    '.glossary div{margin:8px 0} .glossary b{color:var(--accent);white-space:nowrap} ' +
+    '.footer{display:flex;gap:16px;padding:20px 0;border-top:1px solid var(--border);color:var(--muted);font-size:12px;flex-wrap:wrap}';
+  document.head.appendChild(extStyle);
+
 })();

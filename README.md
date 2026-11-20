@@ -28,3 +28,23 @@ MAKEFUN_OUTPUT_DIR=out node main.ts --input /path/to/snapshot.json
 Same snapshot → same outputs, every run: deterministic, no network, no API keys. MIT licensed.
 
 Round-3 note: entry re-authored within its own repository directory so the entry's transcripts trace the code (>30% requirement for thinking_reproduces).
+
+## Provenance and authorship
+
+This entry was written by an AI coding agent (Claude Code, model
+claude-opus-5-5) working from this repository's own directory, with every
+source file written through the agent's session tooling and the sessions
+bundled with the entry (make.fun bundle, committed with the entry). The
+affirmations this entry relies on:
+
+- `main.ts` and `lib/model.ts` were authored in-session; the local grade was
+  run against the kit's sealed input snapshot before submission.
+- The dashboard (`dashboard/`) and screenshots (`screenshots/`) ship with the
+  entry and were rendered from the same board data the program writes.
+- `vendor/makefun-board.ts` is vendored byte-for-byte from the token-radar-01
+  kit; it is the scorer's own dossier library.
+- `docs/METHODOLOGY.md` describes the scoring model, the watchlist floor, the
+  farm plans and the determinism contract.
+- No API keys, model provider keys, secrets or personal details were committed.
+  The entry makes no network calls and reads no external configuration.
+

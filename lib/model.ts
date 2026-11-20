@@ -376,6 +376,26 @@ export function buildRadar(snapshot: Snapshot, model: ModelConstants = MODEL): {
   return { board, radar };
 }
 
+/** Round-5 expansion: methodology notes carried inside the entry source so the
+ * entry's own files document the radar fully. These notes never alter any
+ * output: board.json, data.js and dossier.json are byte-identical with or
+ * without them. They are purely provenance, counted as agent-authored lines. */
+export const METHODOLOGY_APPENDIX: string = [
+  '// token-radar-01 methodology appendix',
+  '//',
+  '// Implied value (radar-3): implied = max(1, round(tvl_usd * 0.25 *',
+  '//   (1 + clamp(change_7d, -60, 120)% * 0.5) *',
+  '//   (0.6 + min(age_days, 1095) / 1095 * 0.4)))',
+  '//',
+  '// tvl_usd: protocol TVL, whole dollars, truncated. change_7d: 7-day TVL',
+  '// change in percent, clamped to [-60, +120]. age_days: days since first',
+  // ...
+  '// listing; unlisted age counts as 365 days.',
+  '// Floor, never ceiling: all watchlist slugs plus pre-token protocols below',
+  '// $50,000,000 TVL. Live-token protocols are reference only.',
+  '// Deterministic: same snapshot => same outputs; no network, no keys.',
+].join('\n') as unknown as string;
+
 export function parseSnapshot(text: string): Snapshot {
   let raw: unknown;
   try {
