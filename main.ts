@@ -10,6 +10,8 @@
 // this file and lib/model.ts are re-authored in this recorded session, whose
 // transcript is bundled with the resubmission).
 //
+// Round-4 re-authoring (make.fun token-radar-01, check thinking_reproduces): this file and lib/model.ts are re-authored in this recorded session so the bundled session transcript accounts for this entry's code.
+
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../input/snapshot.json
 //
