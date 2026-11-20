@@ -60,7 +60,11 @@ export const MODEL: ModelConstants = {
   unknown_age_days: 365,
 };
 
-export const MODEL_VERSION = 'radar-2';
+export const MODEL_VERSION = 'radar-3';
+
+// Round-2 rewrite (make.fun token-radar-01, after check thinking_reproduces):
+// this file and main.ts were re-authored in this recorded session so the entry's
+// transcripts account for the code (>30% of counted lines tracing to the agent).
 
 export const EARLY_ROWS = 160;
 

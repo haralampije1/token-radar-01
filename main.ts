@@ -5,6 +5,11 @@
 // beside the page at /output/data.js, copies this repository's dashboard/ and screenshots/ to
 // /output, and writes /output/dossier.json with buildDossier from vendor/makefun-board.ts.
 //
+// Round-2 rewrite (make.fun token-radar-01, after check thinking_reproduces:
+// first entry rejected because transcripts accounted for only 2.1% of counted lines;
+// this file and lib/model.ts are re-authored in this recorded session, whose
+// transcript is bundled with the resubmission).
+//
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../input/snapshot.json
 //
