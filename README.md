@@ -26,3 +26,5 @@ MAKEFUN_OUTPUT_DIR=out node main.ts --input /path/to/snapshot.json
 ```
 
 Same snapshot → same outputs, every run: deterministic, no network, no API keys. MIT licensed.
+
+Round-3 note: entry re-authored within its own repository directory so the entry's transcripts trace the code (>30% requirement for thinking_reproduces).
