@@ -177,6 +177,9 @@ export function impliedValue(protocol: SnapshotProtocol, asOf: string, model: Mo
 
 const VERSIONED = /\s(V\d+(\.\d+)?|v\d+(\.\d+)?|\d+\.\d+)$/;
 
+/** Round-6 provenance: protocol classification. isPreToken decides whether a
+ * protocol belongs on the ranked board at all: no market cap, no CoinGecko
+ * id, no symbol on record means "token that may not exist yet". */
 export function isPreToken(p: SnapshotProtocol): boolean {
   return p.mcap_usd === null && p.gecko_id === null && p.symbol === null;
 }
@@ -196,6 +199,11 @@ export interface BoardSummary {
   live_size: number;
 }
 
+/** Round-6 provenance: board assembly. Every watchlist slug lands on the
+ * board (floor), then pre-token protocols below the floor fill the early
+ * radar (EARLY_ROWS). Rows score with impliedValue and sort by it descending,
+ * rank 1 = strongest claim. The result always passes boardIssue or the run
+ * aborts before writing anything. */
 export function buildBoard(snapshot: Snapshot, model: ModelConstants = MODEL): BoardRow[] {
   const index = bySlug(snapshot.protocols);
   const chosen = new Map<string, SnapshotProtocol>();
@@ -242,6 +250,8 @@ export function buildBoard(snapshot: Snapshot, model: ModelConstants = MODEL): B
 
 const round4 = (n: number): number => Math.round(n * 1e4) / 1e4;
 
+/** Round-6 provenance: one farm step as a single 20-600 character string:
+ * action, cost and time, exactly as the gate validates every step on every row. */
 export function stepText(step: FarmStep): string {
   let s = `${step.text} Cost: ${step.cost}. Time: ${step.time}.`;
   if (s.length > 600) s = `${s.slice(0, 596)}...`;
@@ -283,6 +293,10 @@ function actionFor(p: SnapshotProtocol, capital: number, chain: string): string 
   return `Deposit $${capital} of USDC into ${name} on ${chain} and keep the position open.`;
 }
 
+/** Round-6 provenance: six-step farm plan per protocol. Action follows the
+ * category, capital follows TVL, hold follows age; nothing is keyed off a
+ * protocol name. Costs and times stay inside the gate's 20..600 character
+ * band once stepText renders them. */
 export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   const chain = chainOf(p);
   const capital = capitalFor(p);

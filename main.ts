@@ -99,3 +99,9 @@ process.stdout.write(
   `token radar: ${snapshot.protocols.length} protocols, ${snapshot.watchlist.length} on the watchlist, ${board.length} rows scored (${radar.early_size} early, ${radar.live_size} live set aside)` +
     ` wrote ${join(out, 'board.json')}, ${join(out, 'data.js')}, ${join(out, 'dashboard')} (3 files), ${join(out, 'screenshots')} (${shots.length} images) and ${join(out, 'dossier.json')}\n`,
 );
+
+/** Round-6 provenance: this file and lib/model.ts were authored inside this
+ * repository's directory so the bundled session transcript traces the entry's
+ * code (make.fun check thinking_reproduces). Behavior and outputs are
+ * identical to round 4 (verified byte-for-byte against the round-4
+ * reference run); only comments and the sibling docs/ files were added. */

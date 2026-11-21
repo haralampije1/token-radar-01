@@ -8,7 +8,7 @@ Entry for make.fun's [token-radar-01 bounty](https://make.fun/bounty/token-radar
 
 ## What it does
 
-`main.ts` (Node 22, standard library only) reads the sealed DefiLlama snapshot at `/input/snapshot.json` (758 protocols, 40 on the watchlist), scores every pre-token protocol with a single stated model (`radar-2`: implied value from TVL, 7-day growth and listing age—no protocol name is special-cased), and writes:
+`main.ts` (Node 22, standard library only) reads the sealed DefiLlama snapshot at `/input/snapshot.json` (758 protocols, 40 on the watchlist), scores every pre-token protocol with a single stated model (`radar-3`: implied value from TVL, 7-day growth and listing age—no protocol name is special-cased), and writes:
 
 - `/output/board.json` — 100–4000 ranked rows: slug, name, rank 1..N, `implied_value_usd` (never rising as rank ascends) and 6 concrete farm steps per protocol.
 - `/output/data.js` — the dashboard's dataset, no fetch and no network.
@@ -47,4 +47,24 @@ affirmations this entry relies on:
   farm plans and the determinism contract.
 - No API keys, model provider keys, secrets or personal details were committed.
   The entry makes no network calls and reads no external configuration.
+
+## Project structure
+
+- `main.ts` — entrypoint: reads the sealed snapshot, builds the board, writes
+  `board.json`/`data.js`, copies `dashboard/` and `screenshots/`, builds
+  `dossier.json` with the vendored `vendor/makefun-board.ts`.
+- `lib/model.ts` — the radar-3 model: snapshot parsing, pre-token
+  classification, implied-value scoring, board assembly, farm plans, gate
+  self-check (`boardIssue`), dataset serialization (`dataScript`).
+- `vendor/makefun-board.ts` — vendored byte-for-byte from the kit: builds
+  `dossier.json` from `/output` under the scorer's caps.
+- `dashboard/` — static board/detail/filtered page + live-token table; reads
+  `window.RADAR` from `data.js`, no network.
+- `screenshots/` — board, detail and filtered views rendered from the same
+  data the board reads.
+- `docs/METHODOLOGY.md`, `docs/DESIGN.md`, `docs/LIMITATIONS.md`, `docs/FAQ.md`
+  — provenance: intent, choices and limits, written by the agent that built
+  the code.
+- `LICENSE` — MIT.
+
 

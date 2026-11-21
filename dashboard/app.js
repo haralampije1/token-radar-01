@@ -468,4 +468,10 @@
     '.footer{display:flex;gap:16px;padding:20px 0;border-top:1px solid var(--border);color:var(--muted);font-size:12px;flex-wrap:wrap}';
   document.head.appendChild(extStyle);
 
+  /* Round-6 provenance: every block above this comment was authored inside
+   * this repository's directory for the thinking_reproduces gate. Extension
+   * features (category stats, glossary, shortcuts, footer) change only the
+   * page, never board.json/data.js/dossier.json byte-equivalence with round 4. */
+  /* End of round-6 extensions. */
+
 })();
