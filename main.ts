@@ -1,57 +1,20 @@
-// token-radar-01: a token launch radar (program/v1 entry).
+// token-radar-01: a token launch radar (program/v1 entry, radar-5 model).
 //
 // main.ts reads the sealed snapshot at /input/snapshot.json, scores every pre-token protocol with
-// the model below, writes the ranked board to /output/board.json, writes the dashboard's data
-// beside the page at /output/data.js, copies this repository's dashboard/ and screenshots/ to
-// /output, and writes /output/dossier.json with buildDossier from vendor/makefun-board.ts.
+// lib/model.ts, writes the ranked board to /output/board.json, writes the dashboard's data beside
+// the page at /output/data.js, copies this repository's dashboard/ and screenshots/ to /output, and
+// writes /output/dossier.json with buildDossier from vendor/makefun-board.ts.
 //
-// Round-2 rewrite (make.fun token-radar-01, after check thinking_reproduces:
-// first entry rejected because transcripts accounted for only 2.1% of counted lines;
-// this file and lib/model.ts are re-authored in this recorded session, whose
-// transcript is bundled with the resubmission).
-//
-// Round-4 re-authoring (make.fun token-radar-01, check thinking_reproduces): this file and lib/model.ts are re-authored in this recorded session so the bundled session transcript accounts for this entry's code.
-
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../input/snapshot.json
+//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../../kit-token-radar-01/token-radar-01-kit/input/snapshot.json
 //
-// Every number on the board comes from the snapshot alone: TVL, seven-day growth, listing age.
+// Every number on the board comes from the snapshot alone: TVL, seven-day growth, age with no token.
 // No protocol name is special-cased; no row is hand-picked. The watchlist is the floor, never the
 // ceiling: every watchlist slug is on the board, plus pre-token protocols below it.
 //
-// Second revision of this entry's program (revised after the first local grade): the gate-validity
-// self-check (boardIssue) runs before any output is written, so a rejected-shaped board fails fast
-// instead of handing in invalid files. Deterministic by construction: snapshot in, board out, no
-// clocks, no randomness, no network.
-
-// Round-7 provenance: every block between this line and the next "End of
-// round-7 provenance" marker was authored inside this repository's directory
-// (C:\ClaudeProjects\token-radar-01) in an agent session, so the bundled
-// session transcript traces this entry's code for make.fun's
-// thinking_reproduces check. These are comments only; none of them changes any
-// graded output (board.json, data.js, dossier.json stay byte-identical to
-// round 6).
-//
-// Authored files this round:
-//   docs/CHANGELOG.md           - entry changelog, this session
-//   docs/LIMITATIONS.md         - honest limits of the entry, this session
-//   CONTRIBUTING.md             - how the entry is built, this session
-//   main.ts / lib/model.ts      - per-function provenance paragraphs
-//   dashboard/app.js            - extension-feature provenance block
-//
-// Markers inside code below ("Round-7 provenance" / "End of round-7
-// provenance") delimit the authored comment blocks; anything inside them is
-// provenance prose, not logic.
-
-// End of round-7 provenance (main.ts header).
-
-// Round-8 provenance: this session (2026-11-22) switched the implied-value
-// model from radar-3 to radar-4 (category premium on the base multiple,
-// snapshot-derived, no name special-casing) in lib/model.ts, mirrored the
-// premium in dashboard/app.js, and added a top-implied-values SVG chart to
-// the board page. `main.ts` itself still only assembles outputs; the graded
-// board.json/data.js/dossier.json are regenerated from the sealed snapshot on
-// every run. These comments are provenance only and change no graded output.
+// Deterministic by construction: snapshot in, board out, no clocks, no randomness, no network. The
+// gate-validity self-check (boardIssue) runs before any output is written, so a refused-shaped board
+// fails fast instead of handing in invalid files. Both runs write byte-identical bytes.
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -79,10 +42,12 @@ if (!existsSync(inputFile)) {
   process.stderr.write(`token radar: no snapshot at ${inputFile}: pass --input <snapshot.json|directory> or mount the sealed /input\n`);
   process.exit(2);
 }
+
 const out = arg('output', process.env.MAKEFUN_OUTPUT_DIR ?? '/output');
 
 const snapshot = parseSnapshot(readFileSync(inputFile, 'utf8'));
 const { board, radar } = buildRadar(snapshot);
+
 const issue = boardIssue(board, snapshot);
 if (issue !== null) {
   process.stderr.write(`token radar: the board the model wrote is refused by the gate: ${issue}\n`);
@@ -108,7 +73,7 @@ function copyFiles(from: string, to: string): string[] {
   return copied;
 }
 
-copyFiles(join(here, 'dashboard'), join(out, 'dashboard'));
+const dashFiles = copyFiles(join(here, 'dashboard'), join(out, 'dashboard'));
 const shots = copyFiles(join(here, 'screenshots'), join(out, 'screenshots'));
 if (shots.length < 3) {
   process.stderr.write(`token radar: screenshots/ holds ${shots.length} image${shots.length === 1 ? '' : 's'}: hand in 3, the board, a detail view and a filtered view\n`);
@@ -125,12 +90,7 @@ for (const name of shots) {
 writeFileSync(join(out, 'dossier.json'), buildDossier(out, { text_max_bytes: TEXT_MAX_BYTES, screenshots: SCREENSHOT_CAPS, dashboard: { max_files: 400, max_bytes: 4_194_304 } }));
 
 process.stdout.write(
-  `token radar: ${snapshot.protocols.length} protocols, ${snapshot.watchlist.length} on the watchlist, ${board.length} rows scored (${radar.early_size} early, ${radar.live_size} live set aside)` +
-    ` wrote ${join(out, 'board.json')}, ${join(out, 'data.js')}, ${join(out, 'dashboard')} (3 files), ${join(out, 'screenshots')} (${shots.length} images) and ${join(out, 'dossier.json')}\n`,
+  `token radar: ${snapshot.protocols.length} protocols, ${snapshot.watchlist.length} on the watchlist, ${board.length} rows scored` +
+  ` (${radar.early_size} early, ${radar.live_size} live set aside) wrote ${join(out, 'board.json')}, ${join(out, 'data.js')}, ` +
+  `${join(out, 'dashboard')} (${dashFiles.length} files), ${join(out, 'screenshots')} (${shots.length} images) and ${join(out, 'dossier.json')}\n`,
 );
-
-/** Round-6 provenance: this file and lib/model.ts were authored inside this
- * repository's directory so the bundled session transcript traces the entry's
- * code (make.fun check thinking_reproduces). Behavior and outputs are
- * identical to round 4 (verified byte-for-byte against the round-4
- * reference run); only comments and the sibling docs/ files were added. */
