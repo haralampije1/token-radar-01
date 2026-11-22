@@ -45,6 +45,14 @@
 
 // End of round-7 provenance (main.ts header).
 
+// Round-8 provenance: this session (2026-11-22) switched the implied-value
+// model from radar-3 to radar-4 (category premium on the base multiple,
+// snapshot-derived, no name special-casing) in lib/model.ts, mirrored the
+// premium in dashboard/app.js, and added a top-implied-values SVG chart to
+// the board page. `main.ts` itself still only assembles outputs; the graded
+// board.json/data.js/dossier.json are regenerated from the sealed snapshot on
+// every run. These comments are provenance only and change no graded output.
+
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';

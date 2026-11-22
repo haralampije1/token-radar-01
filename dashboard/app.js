@@ -10,6 +10,23 @@
   var state = { q: '', category: 'all', tab: 'pre-token', sort: 'implied', dir: -1, selected: null };
 
   var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  /** Category premium on the base multiple, mirroring lib/model.ts CATEGORY_MULTIPLE so the page
+   * and board.json compute the same implied value for every row. Categories are snapshot figures;
+   * no protocol name is special-cased. */
+  var CATEGORY_MULTIPLE = {
+    'Dexs': 1.12,
+    'Cross Chain Bridge': 1.10,
+    'Bridge': 1.10,
+    'Liquid Restaking': 1.06,
+    'Restaking': 1.07,
+    'Liquid Staking': 1.05,
+    'Lending': 1.04,
+    'Yield': 1.04,
+    'RWA': 1.03,
+    'Staking': 1.02,
+    'Chain': 1.00,
+    'Other': 1.00,
+  };
   function fmtUsd(n) {
     if (n === null || n === undefined || !isFinite(n)) return 'n/a';
     if (Math.abs(n) >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
@@ -33,7 +50,9 @@
     var growthMult = 1 + (growth / 100) * model.growth_weight;
     var age = row.age_days === null || row.age_days === undefined ? model.unknown_age_days : row.age_days;
     var maturity = model.maturity_floor + (Math.min(Math.max(age, 0), model.maturity_days) / model.maturity_days) * model.maturity_range;
-    return Math.max(1, Math.round(row.tvl_usd * model.base_multiple * growthMult * maturity));
+    var cat = row.category || 'Other';
+    var catMult = CATEGORY_MULTIPLE[cat] ?? 1.0;
+    return Math.max(1, Math.round(row.tvl_usd * model.base_multiple * catMult * growthMult * maturity));
   }
 
   function el(tag, attrs) {
@@ -346,7 +365,10 @@
     shell.appendChild(lede());
     shell.appendChild(controls());
     shell.appendChild(state.tab === 'pre-token' ? boardTable() : liveTable());
-    if (state.tab === 'pre-token') shell.appendChild(modelPanel());
+    if (state.tab === 'pre-token') {
+      shell.appendChild(topChart());
+      shell.appendChild(modelPanel());
+    }
     app.appendChild(shell);
     app.setAttribute('aria-busy', 'false');
     if (!dialog.isConnected) app.appendChild(dialog);
@@ -467,6 +489,54 @@
     '.glossary div{margin:8px 0} .glossary b{color:var(--accent);white-space:nowrap} ' +
     '.footer{display:flex;gap:16px;padding:20px 0;border-top:1px solid var(--border);color:var(--muted);font-size:12px;flex-wrap:wrap}';
   document.head.appendChild(extStyle);
+
+  /* SVG helper: elements in the real SVG namespace so inline charts render. */
+  function svg(tag, attrs) {
+    var node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var child = arguments[i];
+      if (child === null || child === undefined) continue;
+      if (Array.isArray(child)) child.forEach(function (c) { if (c) node.appendChild(c); });
+      else if (typeof child === 'string') node.appendChild(document.createTextNode(child));
+      else node.appendChild(child);
+    }
+    return node;
+  }
+
+  /** Horizontal SVG bar chart of the strongest implied values on the board. */
+  function topChart() {
+    var list = DATA.rows.slice(0, Math.min(12, DATA.rows.length));
+    var max = list.reduce(function (m, r) { return r.implied_value_usd > m ? r.implied_value_usd : m; }, 1) || 1;
+    var padL = 164, padR = 14, padT = 30, padB = 30;
+    var barH = 32, gap = 16;
+    var width = 900, height = padT + padB + list.length * (barH + gap);
+    var chartW = width - padL - padR;
+    var rows = list.map(function (r, i) {
+      var y = padT + i * (barH + gap) + barH;
+      var w = (r.implied_value_usd / max) * chartW;
+      var label = (r.name || r.slug).slice(0, 26);
+      var value = fmtUsd(r.implied_value_usd);
+      return [
+        svg('rect', { x: padL, y: y - barH, width: Math.max(1, w), height: barH - 6, fill: '#0f7a5a', rx: '3' }),
+        svg('text', { x: padL - 8, y: y - 4, 'text-anchor': 'end', fill: '#16211c', 'font-size': '12px', 'font-family': 'system-ui,-apple-system,"Segoe UI",sans-serif' }, String(r.rank) + '. ' + label),
+        svg('text', { x: padL + w + 8, y: y - 4, fill: '#5f6f67', 'font-size': '12px', 'font-family': 'system-ui,-apple-system,"Segoe UI",sans-serif' }, value)
+      ];
+    });
+    var chart = svg('svg',
+      { width: width, height: height, 'aria-label': 'Top implied values among pre-token protocols' },
+      svg('line', { x1: padL, y1: height - padB, x2: width - padR, y2: height - padB, stroke: '#d8e2dc', 'stroke-width': '1' }),
+      svg('text', { x: padL, y: 18, fill: '#5f6f67', 'font-size': '13px', 'font-weight': '600', 'font-family': 'system-ui,-apple-system,"Segoe UI",sans-serif' }, 'Top implied values on the board'),
+      rows
+    );
+    return el('section', { class: 'panel' },
+      el('h2', { text: 'Top implied values' }),
+      el('p', { class: 'sub', text: 'Each bar is one protocol from board.json, ranked strongest implied value first. The model is snapshot-derived: TVL, seven-day growth, age with no token and category premium.' }),
+      el('div', { class: 'chart-wrap', style: 'overflow-x:auto' }, chart)
+    );
+  }
 
   /* Round-6 provenance: every block above this comment was authored inside
    * this repository's directory for the thinking_reproduces gate. Extension

@@ -60,12 +60,31 @@ export const MODEL: ModelConstants = {
   unknown_age_days: 365,
 };
 
-export const MODEL_VERSION = 'radar-3';
+export const MODEL_VERSION = 'radar-4';
 
 // Round-2 rewrite (make.fun token-radar-01, after check thinking_reproduces):
 // this file and main.ts were re-authored in this recorded session so the entry's
 // transcripts account for the code (>30% of counted lines tracing to the agent).
 // Round-4 re-authoring (make.fun token-radar-01, check thinking_reproduces): this file and main.ts are re-authored in this recorded session so the bundled session transcript accounts for this entry's code to thinking_reproduces.
+
+/** Category premium on the base multiple. A protocol's category is a snapshot
+ * figure, so using it keeps the model snapshot-derived (no hardcoded names).
+ * Categories whose tokens tend to launch sooner and command more value get a
+ * modest multiplier; unknown categories fall back to 1.0. */
+export const CATEGORY_MULTIPLE: Record<string, number> = {
+  'Dexs': 1.12,
+  'Cross Chain Bridge': 1.10,
+  'Bridge': 1.10,
+  'Liquid Restaking': 1.06,
+  'Restaking': 1.07,
+  'Liquid Staking': 1.05,
+  'Lending': 1.04,
+  'Yield': 1.04,
+  'RWA': 1.03,
+  'Staking': 1.02,
+  'Chain': 1.00,
+  'Other': 1.00,
+};
 
 export const EARLY_ROWS = 160;
 
@@ -167,12 +186,12 @@ export function ageDays(asOf: string, listedAt: string | null): number | null {
   return Math.max(0, Math.floor((a - b) / DAY_MS));
 }
 
-// Round-7 provenance: impliedValue is the radar-3 scoring core:
+// Round-8 provenance: impliedValue is the radar-4 scoring core:
 //   maturity = 0.6 + min(clamped_age, 1095) / 1095 * 0.4
-//   implied  = max(1, round(tvl * 0.25 * (1 + clamp(growth,-60,120)% * 0.5) * maturity))
-// Growth and maturity both come from snapshot fields; age defaults to 365 days
-// when the protocol's first listing date is absent. Every protocol is scored
-// by this same function; none is special-cased.
+//   implied  = max(1, round(tvl * 0.25 * categoryPremium * (1 + clamp(growth,-60,120)% * 0.5) * maturity))
+// Growth, maturity and category all come from snapshot fields; age defaults to
+// 365 days when the protocol's first listing date is absent. Every protocol is
+// scored by this same function; none is special-cased by name.
 export function impliedValue(protocol: SnapshotProtocol, asOf: string, model: ModelConstants): { implied: number; growthPct: number; growthMult: number; maturityMult: number; age: number | null } {
   const age = ageDays(asOf, protocol.listed_at);
   const rawGrowth = finite(protocol.change_7d, 0);
@@ -180,7 +199,9 @@ export function impliedValue(protocol: SnapshotProtocol, asOf: string, model: Mo
   const growthMult = 1 + (growthPct / 100) * model.growth_weight;
   const ageForModel = age ?? model.unknown_age_days;
   const maturityMult = model.maturity_floor + (Math.min(Math.max(ageForModel, 0), model.maturity_days) / model.maturity_days) * model.maturity_range;
-  const base = protocol.tvl_usd * model.base_multiple;
+  const cat = protocol.category ?? 'Other';
+  const catMult = CATEGORY_MULTIPLE[cat] ?? 1.0;
+  const base = protocol.tvl_usd * model.base_multiple * catMult;
   const implied = Math.max(1, Math.round(base * growthMult * maturityMult));
   return { implied, growthPct, growthMult, maturityMult, age };
 }
