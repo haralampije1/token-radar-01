@@ -73,3 +73,27 @@ td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
 .empty{padding:34px;color:var(--muted);text-align:center;}
 footer{margin:22px 0 8px;color:var(--muted);font-size:11.5px;text-align:center;}
 @media (max-width:900px){#app{padding:14px 12px;}th,td{padding:7px 9px;font-size:12px;}}
+.shell{display:flex;gap:14px;margin-top:12px;}
+.left{flex:1;min-width:0;}
+.right{width:min(360px,94vw);flex-shrink:0;position:sticky;top:14px;}
+@media (max-width:1100px){.shell{flex-direction:column}.right{width:auto;position:static;}}
+.integrity{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#101929;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;}
+.integrity .sub{font-size:11.5px;color:var(--muted);margin-right:10px;}
+.check{display:flex;align-items:center;gap:7px;font-size:12.5px;white-space:nowrap;}
+.check .pass{color:#34d399;}.check .fail{color:#fb7185;}
+.verdict{white-space:nowrap;}
+.status.farm{color:#166534;border-color:#16a34a;background:#064e3b;}.status.marginal{color:#713f12;border-color:#d97706;background:#78350f;}.status.skip{color:#991b1b;border-color:#ef4444;background:#450a0a;}
+.plan{background:transparent;border:1px solid var(--line);color:var(--muted);padding:4px 8px;border-radius:6px;font:inherit;font-size:12px;cursor:pointer;}
+.plan.active{background:var(--accent);color:#041423;border-color:var(--accent);font-weight:700;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;display:flex;flex-direction:column;gap:8px;}
+.calc-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+.calc-row label{font-size:11.5px;color:var(--muted);}
+.note{font-size:12px;color:var(--muted);margin:2px 0 0 0;}
+.tab-panel.hidden{display:none;}
+.right .tabs{display:flex;gap:6px;margin-bottom:8px;}
+.right .tab[aria-pressed="true"]{background:var(--panel2);color:var(--text);}
+dialog[open]{position:fixed;left:2vw;top:2vh;right:2vw;bottom:2vh;z-index:50;margin:0;background:var(--panel);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:auto;}
+dialog[open] .head{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:10px;}
+dialog[open] .close{position:absolute;right:8px;top:6px;}
+.eq{grid-template-columns:136px 1fr;}
+@media (max-width:900px){th,td{font-size:12px;}td.verdict{font-size:11px;}}

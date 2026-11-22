@@ -57,7 +57,7 @@ export const MODEL: ModelConstants = {
   unknown_age_days: 365,
 };
 
-export const MODEL_VERSION = 'radar-5';
+export const MODEL_VERSION = 'radar-6';
 
 // Category multiple on the base multiple. Categories are snapshot figures; using them keeps the
 // model snapshot-derived while reflecting that some sectors issue tokens sooner than others.
@@ -149,6 +149,8 @@ export interface RadarData {
   board_size: number;
   early_size: number;
   live_size: number;
+  watchlist: string[];
+  implied_total: number;
   rows: RadarRow[];
   live: LiveRow[];
 }
@@ -351,7 +353,9 @@ export function buildRadar(snapshot: Snapshot, model: ModelConstants = MODEL): {
   const radar: RadarData = {
     as_of: snapshot.as_of, source: snapshot.source, floor_usd: snapshot.floor_usd, model,
     model_version: MODEL_VERSION, watchlist_size: snapshot.watchlist.length, board_size: board.length,
-    early_size: early, live_size: live.length, rows: board.map(radarRow), live,
+    early_size: early, live_size: live.length, watchlist: snapshot.watchlist,
+    implied_total: board.reduce((sum, r) => sum + r.implied_value_usd, 0),
+    rows: board.map(radarRow), live,
   };
   return { board, radar };
 }
