@@ -210,7 +210,8 @@
         el('span', { text: c.ok ? 'pass — ' + c.detail : 'fail — ' + c.detail }));
     });
     return el('div', { class: 'integrity' },
-      el('span', { class: 'sub', text: 'Integrity — recomputed live from window.RADAR' }), items);
+      el('span', { class: 'sub', text: 'Integrity — recomputed live from window.RADAR' }), items,
+      el('div', { class: 'sub', style: 'margin-top:7px', text: 'Model factors — iz snapshot-a, bez name liste: TVL × 0,25 × kategorija (1,00–1,10) × (1 + Rast7d/100 × 0,5) × zrelost (0,60 → 1,00 nakon 1095 dana bez tokena). Izračunato po protokolu; implied = round(...).' }));
   }
   function chips() {
     return el('div', { class: 'controls row' },
